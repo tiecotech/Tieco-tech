@@ -1,0 +1,39 @@
+/* Public inner pages (services, about, contact, legal). Import in each page file. */
+.tt-pg{padding:72px 0 96px}
+.tt-pg-head{max-width:760px;margin-bottom:44px}
+.tt-pg-head h1{font-size:clamp(32px,4.4vw,54px);letter-spacing:-.03em;line-height:1.1;margin:0 0 14px}[dir=rtl] .tt-pg-head h1{letter-spacing:0;line-height:1.3}
+.tt-pg-head p{color:var(--tt-mut);font-size:18px;margin:0}
+.tt-pg-back{display:inline-block;color:var(--tt-mut);font-size:14px;margin-bottom:18px}.tt-pg-back:hover{color:var(--tt-ink)}
+.tt-pg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px}
+.tt-pg-svc{display:flex;flex-direction:column;gap:10px;padding:24px;border:1px solid var(--tt-line);border-radius:18px;background:var(--tt-bg2);transition:transform .3s var(--tt-ease),border-color .3s,box-shadow .3s}
+.tt-pg-svc:hover{transform:translateY(-4px);border-color:var(--tt-p);box-shadow:0 24px 50px -30px var(--tt-p)}
+.tt-pg-svc svg{width:30px;height:30px;stroke:var(--tt-o);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tt-pg-svc h2,.tt-pg-svc h3{margin:0;font-size:19px}.tt-pg-svc p{margin:0;color:var(--tt-mut);font-size:14.5px}
+.tt-pg-svc .more{margin-top:auto;color:var(--tt-o);font-weight:600;font-size:14px}
+.tt-pg-block{margin-top:44px}.tt-pg-block h2{font-size:24px;margin:0 0 16px;letter-spacing:-.01em}
+.tt-pg-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.tt-pg-list li{position:relative;padding-inline-start:26px}
+.tt-pg-list li::before{content:"";position:absolute;inset-inline-start:2px;top:.6em;width:8px;height:8px;background:linear-gradient(135deg,var(--tt-p),var(--tt-o));transform:rotate(45deg)}
+.tt-pg-two{display:grid;grid-template-columns:repeat(2,1fr);gap:28px}
+.tt-pg-steps{counter-reset:s;display:grid;gap:14px}
+.tt-pg-steps div{counter-increment:s;padding:16px 18px;padding-inline-start:60px;position:relative;border:1px solid var(--tt-line);border-radius:14px}
+.tt-pg-steps div::before{content:counter(s);position:absolute;inset-inline-start:16px;top:14px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;background:linear-gradient(135deg,var(--tt-p),var(--tt-m));color:#fff}
+.tt-pg-steps b{display:block}.tt-pg-steps span{color:var(--tt-mut);font-size:14.5px}
+.tt-pg-faq details{border-bottom:1px solid var(--tt-line);padding:14px 0}.tt-pg-faq summary{cursor:pointer;font-weight:600}.tt-pg-faq p{margin:10px 0 0;color:var(--tt-mut)}
+.tt-pg-note{padding:18px 20px;border:1px dashed var(--tt-line);border-radius:14px;color:var(--tt-mut)}
+.tt-pg-cta{margin-top:56px;padding:34px;border-radius:20px;background:linear-gradient(120deg,rgba(106,59,255,.28),rgba(255,62,190,.16),rgba(255,122,69,.2));border:1px solid var(--tt-line);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.tt-pg-cta h2{margin:0 0 4px;font-size:24px}.tt-pg-cta p{margin:0;color:var(--tt-mut)}
+.tt-pg-prose{max-width:760px}.tt-pg-prose p{margin:0 0 16px;line-height:1.8;white-space:pre-line}
+.tt-pg-team{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px}
+.tt-pg-member{text-align:center}.tt-pg-member .ph{aspect-ratio:1;border-radius:50%;background:linear-gradient(135deg,rgba(106,59,255,.4),rgba(255,122,69,.35)) center/cover;margin:0 auto 12px;max-width:150px}
+.tt-pg-member b{display:block}.tt-pg-member span{color:var(--tt-mut);font-size:14px}
+.tt-pg-contact{display:grid;grid-template-columns:1.4fr 1fr;gap:36px;align-items:start}
+.tt-pg-form{display:grid;gap:16px}.tt-pg-form .tt-b-field input,.tt-pg-form .tt-b-field textarea,.tt-pg-form .tt-b-field select{width:100%}
+.tt-pg-side{display:grid;gap:16px}.tt-pg-box{border:1px solid var(--tt-line);border-radius:16px;padding:20px;background:var(--tt-bg2)}
+.tt-pg-box h2{margin:0 0 12px;font-size:17px}.tt-pg-box a:not(.tt-btn){display:block;padding:6px 0;color:var(--tt-mut)}.tt-pg-box a:hover{color:var(--tt-ink)}.tt-pg-box p{margin:0 0 12px;color:var(--tt-mut)}
+.tt-hp{position:absolute!important;inset-inline-start:-9999px;width:1px;height:1px;overflow:hidden}
+.tt-pg-ok{text-align:center;padding:60px 20px}.tt-pg-ok h1{margin:0 0 10px}.tt-pg-ok p{color:var(--tt-mut);margin:0 0 24px}
+@media(max-width:860px){.tt-pg-two,.tt-pg-contact{grid-template-columns:1fr}.tt-pg{padding:48px 0 72px}}
+@media(prefers-reduced-motion:reduce){.tt-pg-svc{transition:none}.tt-pg-svc:hover{transform:none}}
+.tt-pg-form{min-width:0}.tt-pg-contact>*{min-width:0}
+.tt-pg-box .tt-btn{padding:11px 22px}
