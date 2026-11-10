@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             PricingSeeder::class,
             ServiceSeeder::class,
             PageSeeder::class,
+            ProjectSeeder::class,
             AdminUserSeeder::class,
         ]);
 

@@ -134,3 +134,6 @@ html{scroll-behavior:smooth;scroll-padding-top:80px}
   .tt-fg{grid-template-columns:1fr 1fr}.tt-sec{padding:64px 0}}
 @media(prefers-reduced-motion:reduce){.tt *,.tt *::before,.tt *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}
   .tt-ln>span,.tt-fade,.tt-grad{transform:none;opacity:1}.tt-rv{opacity:1;transform:none}}
+
+/* Dot network inside the hero (components/site/hero-network.tsx). */
+.tt-net{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1}

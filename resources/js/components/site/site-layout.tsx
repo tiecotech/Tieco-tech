@@ -21,11 +21,11 @@ function Header() {
 
     const links = [
         ['nav.services', '/services'],
-        ['nav.work', '#work'],
+        ['nav.work', '/projects'],
         ['nav.about', '/about'],
         ['nav.contact', '/contact'],
     ].filter(([k]) => SHOW_WORK || k !== 'nav.work') as [string, string][];
-    // '#work' stays a home-page section until the portfolio page exists; real pages are plain paths.
+    // Paths starting with '#' are home-page sections; everything else is a page.
     const href = (h: string) => (h.startsWith('#') ? `${url()}${h}` : url(h));
 
     return (
@@ -81,7 +81,7 @@ function Footer({ services }: { services: { id: number; name: string }[] }) {
                         <Link href={url('/about')}>{t('nav.about')}</Link>
                         <Link href={url('/contact')}>{t('nav.contact')}</Link>
                         {(legal ?? []).map((p) => <Link key={p.slug} href={url(`/legal/${p.slug}`)}>{p.title}</Link>)}
-                        {SHOW_WORK && <a href={`${url()}#work`}>{t('nav.work')}</a>}
+                        {SHOW_WORK && <Link href={url('/projects')}>{t('nav.work')}</Link>}
                         <Link href={url('/start')}>{t('hero.cta')}</Link>
                     </div>
                     <div className="l">

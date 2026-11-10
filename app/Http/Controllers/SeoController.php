@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Page;
+use App\Models\Project;
 use App\Models\Service;
 use App\Support\Launch;
 use Illuminate\Http\Response;
@@ -23,7 +24,10 @@ class SeoController extends Controller
     {
         abort_unless(Launch::isLive(), 404); // pages are hidden behind the coming-soon gate until launch
 
-        $paths = ['', '/services', '/about', '/contact', '/start'];
+        $paths = ['', '/services', '/projects', '/about', '/contact', '/start'];
+        foreach (Project::public()->pluck('slug') as $slug) {
+            $paths[] = "/projects/{$slug}";
+        }
         foreach (Service::visible()->pluck('slug') as $slug) {
             $paths[] = "/services/{$slug}";
         }

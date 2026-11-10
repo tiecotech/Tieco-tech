@@ -1,5 +1,7 @@
 import { BrandMark } from '@/components/brand/logo';
 import { ServiceIcon } from '@/components/site/icons';
+import { HeroNetwork } from '@/components/site/hero-network';
+import { ProjectRow } from '@/components/site/project-parts';
 import { useSite, type ProjectItem, type ServiceItem } from '@/lib/tieco';
 import { Link } from '@inertiajs/react';
 import { useEffect, useRef, type PointerEvent } from 'react';
@@ -24,7 +26,7 @@ export function Hero() {
 
     return (
         <div className="tt-hero" ref={hero} onPointerMove={move} onPointerLeave={leave}>
-            <div className="tt-blob tt-b1" /><div className="tt-blob tt-b2" /><div className="tt-blob tt-b3" /><div className="tt-glow" />
+            <div className="tt-blob tt-b1" /><div className="tt-blob tt-b2" /><div className="tt-blob tt-b3" /><div className="tt-glow" /><HeroNetwork />
             <div className="tt-w tt-hero-grid">
                 <div>
                     <h1 className="tt-h1">
@@ -86,8 +88,8 @@ export function Services({ services }: { services: ServiceItem[] }) {
     );
 }
 
-// Hidden until real projects are added; flip to true to show the section and its nav links again.
-export const SHOW_WORK = false;
+// Set to false to hide the "Our work" section and its nav links again.
+export const SHOW_WORK = true;
 
 export function Work({ projects }: { projects: ProjectItem[] }) {
     const { t, url } = useSite();
@@ -98,18 +100,14 @@ export function Work({ projects }: { projects: ProjectItem[] }) {
                 <h2 className="tt-h2 tt-rv">{t('work.title')}</h2>
                 <p className="tt-lead tt-rv">{t('work.lead')}</p>
                 {projects.length ? (
-                    <div className="tt-works tt-rv">
-                        {projects.map((p) => (
-                            <article className="tt-card" key={p.id}>
-                                <div className="img" style={p.cover ? { backgroundImage: `url(${p.cover})` } : undefined} />
-                                <div className="b">
-                                    {p.category && <small>{p.category}</small>}
-                                    <h3>{p.title}</h3>
-                                    {p.summary && <p>{p.summary}</p>}
-                                </div>
-                            </article>
-                        ))}
-                    </div>
+                    <>
+                        <div className="pj-list">
+                            {projects.map((p, i) => <ProjectRow key={p.id} p={p} flip={i % 2 === 1} />)}
+                        </div>
+                        <div className="pj-all tt-rv">
+                            <Link className="tt-btn out" href={url('/projects')}>{t('work.all')} <Arrow /></Link>
+                        </div>
+                    </>
                 ) : (
                     <div className="tt-empty tt-rv">
                         <div>

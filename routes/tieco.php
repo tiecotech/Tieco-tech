@@ -2,12 +2,13 @@
 
 use App\Http\Controllers\BuilderController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PreviewController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\RootRedirectController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\ServicesController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\RootRedirectController;
 use App\Http\Middleware\ComingSoon;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,8 @@ Route::prefix('{locale}')->where(['locale' => 'en|ar'])->middleware([ComingSoon:
 
     Route::get('/services', [ServicesController::class, 'index'])->name('site.services');
     Route::get('/services/{slug}', [ServicesController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('site.services.show');
+    Route::get('/projects', [ProjectController::class, 'index'])->name('site.projects');
+    Route::get('/projects/{slug}', [ProjectController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('site.projects.show');
     Route::get('/about', [PageController::class, 'about'])->name('site.about');
     Route::get('/legal/{slug}', [PageController::class, 'legal'])->name('site.legal');
     Route::get('/contact', [ContactController::class, 'show'])->name('site.contact');
