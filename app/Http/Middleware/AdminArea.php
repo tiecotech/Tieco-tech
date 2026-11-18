@@ -25,7 +25,7 @@ class AdminArea
         Inertia::share([
             'locale' => $locale,
             'dir' => $locale === 'ar' ? 'rtl' : 'ltr',
-            'ui' => array_merge((array) trans('admin'), (array) trans('admin_more')),
+            'ui' => array_merge((array) trans('admin'), (array) trans('admin_more'), (array) trans('admin_sales')),
             'currency' => SiteSetting::get('currency') ?? ['code' => 'USD', 'symbol' => '$', 'decimals' => 2, 'position' => 'before'],
             'admin' => fn () => [
                 'user' => ['name' => $user->name, 'email' => $user->email, 'role' => $role?->value],

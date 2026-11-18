@@ -16,6 +16,7 @@ class ProjectRequest extends Model
         'project_type_snapshot' => 'array', 'pricing_snapshot' => 'array', 'whatsapp_opt_in' => 'boolean',
         'has_unpriced_items' => 'boolean', 'expected_date' => 'date',
         'subtotal_minor' => 'integer', 'discount_minor' => 'integer', 'total_minor' => 'integer',
+        'sold_at' => 'date', 'final_price_minor' => 'integer',
     ];
 
     /** Human-friendly unique number, e.g. TT-261015-K7Q2M. */
@@ -61,5 +62,21 @@ class ProjectRequest extends Model
     public function quotes()
     {
         return $this->hasMany(Quote::class)->orderByDesc('version');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(RequestPayment::class)->orderByDesc('paid_at')->orderByDesc('id');
+    }
+
+    public function seller()
+    {
+        return $this->belongsTo(User::class, 'sold_by');
+    }
+
+    /** Sum of recorded payments in minor units. */
+    public function receivedMinor(): int
+    {
+        return (int) ($this->relationLoaded('payments') ? $this->payments->sum('amount_minor') : $this->payments()->sum('amount_minor'));
     }
 }

@@ -21,11 +21,17 @@ Route::middleware(['auth', 'verified', AdminArea::class])->prefix('admin')->name
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::get('requests', [RequestController::class, 'index'])->name('requests.index');
         Route::get('requests/export', [RequestController::class, 'export'])->middleware(Can::class.':requests.export')->name('requests.export');
-        Route::get('requests/{projectRequest}', [RequestController::class, 'show'])->name('requests.show');
+        Route::get('requests/{projectRequest}', [RequestController::class, 'show'])->whereNumber('projectRequest')->name('requests.show');
         Route::get('requests/{projectRequest}/attachments/{attachment}', [RequestController::class, 'download'])->name('requests.download');
     });
 
     Route::middleware(Can::class.':requests.manage')->group(function () {
+        // Deals sold outside the website, archived manually.
+        Route::get('requests/create', [RequestController::class, 'create'])->name('requests.create');
+        Route::post('requests', [RequestController::class, 'store'])->name('requests.store');
+        Route::post('requests/{projectRequest}/sale', [RequestController::class, 'sale'])->name('requests.sale');
+        Route::post('requests/{projectRequest}/payments', [RequestController::class, 'paymentStore'])->name('requests.payments.store');
+        Route::delete('requests/{projectRequest}/payments/{payment}', [RequestController::class, 'paymentDestroy'])->name('requests.payments.destroy');
         Route::post('requests/{projectRequest}/status', [RequestController::class, 'status'])->name('requests.status');
         Route::post('requests/{projectRequest}/assign', [RequestController::class, 'assign'])->name('requests.assign');
         Route::post('requests/{projectRequest}/notes', [RequestController::class, 'note'])->name('requests.note');
@@ -66,6 +72,8 @@ Route::middleware(['auth', 'verified', AdminArea::class])->prefix('admin')->name
 
         Route::get('settings', [ContentController::class, 'settings'])->name('settings');
         Route::put('settings', [ContentController::class, 'settingsSave'])->name('settings.update');
+        Route::put('settings/alerts', [ContentController::class, 'alertsSave'])->name('settings.alerts');
+        Route::post('settings/alerts/test', [ContentController::class, 'alertsTest'])->name('settings.alerts.test');
     });
 
     Route::middleware(Can::class.':users.manage')->prefix('users')->name('users.')->group(function () {

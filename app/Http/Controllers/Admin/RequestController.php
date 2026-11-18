@@ -7,7 +7,9 @@ use App\Models\ActivityLog;
 use App\Models\ProjectRequest;
 use App\Models\ProjectRequestAttachment;
 use App\Models\ProjectType;
+use App\Models\RequestPayment;
 use App\Models\RequestStatus;
+use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -22,8 +24,9 @@ class RequestController extends Controller
 {
     public function index(Request $request): Response
     {
-        $filters = $request->only(['q', 'status', 'type', 'from', 'to']);
-        $page = $this->filtered($request)->with(['status', 'assignee:id,name'])->latest()->paginate(15)->withQueryString();
+        $filters = $request->only(['q', 'status', 'type', 'from', 'to', 'deal', 'source']);
+        $page = $this->filtered($request)->with(['status', 'assignee:id,name'])->withSum('payments as received_minor', 'amount_minor')
+            ->latest()->paginate(15)->withQueryString();
 
         return Inertia::render('admin/requests/index', [
             'requests' => [
@@ -32,7 +35,9 @@ class RequestController extends Controller
                     'customer' => $r->customer_name, 'phone' => $r->phone, 'type' => $r->project_type_snapshot['name'] ?? [],
                     'total_minor' => $r->total_minor, 'has_unpriced_items' => $r->has_unpriced_items,
                     'status' => ['name' => $r->status->tr('name'), 'color' => $r->status->color],
-                    'assignee' => $r->assignee?->name,
+                    'assignee' => $r->assignee?->name, 'source' => $r->source ?? 'website',
+                    'sold_at' => $r->sold_at?->toDateString(), 'final_price_minor' => $r->final_price_minor,
+                    'received_minor' => (int) ($r->received_minor ?? 0),
                 ])->values(),
                 'links' => $page->linkCollection()->map(fn ($l) => ['url' => $l['url'], 'label' => strip_tags((string) $l['label']), 'active' => $l['active']])->values(),
                 'total' => $page->total(),
@@ -45,11 +50,19 @@ class RequestController extends Controller
 
     public function show(ProjectRequest $projectRequest): Response
     {
-        $r = $projectRequest->load(['status', 'assignee:id,name', 'items', 'attachments', 'notes.author:id,name']);
+        $r = $projectRequest->load(['status', 'assignee:id,name', 'items', 'attachments', 'notes.author:id,name', 'payments.author:id,name', 'seller:id,name']);
+        $latestQuote = $r->quotes()->whereIn('status', ['sent', 'accepted'])->first();
 
         return Inertia::render('admin/requests/show', [
             'request' => [
-                'id' => $r->id, 'number' => $r->number, 'locale' => $r->locale, 'submitted_at' => $r->created_at?->format('Y-m-d H:i'),
+                'id' => $r->id, 'number' => $r->number, 'source' => $r->source ?? 'website',
+                'sold_at' => $r->sold_at?->toDateString(), 'final_price_minor' => $r->final_price_minor, 'seller' => $r->seller?->name,
+                'received_minor' => $r->receivedMinor(), 'quote_total_minor' => $latestQuote?->total_minor,
+                'payments' => $r->payments->map(fn ($p) => [
+                    'id' => $p->id, 'amount_minor' => $p->amount_minor, 'paid_at' => $p->paid_at?->toDateString(),
+                    'method' => $p->method, 'note' => $p->note, 'author' => $p->author?->name,
+                ])->values(),
+                'locale' => $r->locale, 'submitted_at' => $r->created_at?->format('Y-m-d H:i'),
                 'type' => $r->project_type_snapshot['name'] ?? [], 'pages' => $r->pages,
                 'status_id' => $r->request_status_id, 'assigned_to' => $r->assigned_to,
                 'customer_name' => $r->customer_name, 'phone' => $r->phone, 'email' => $r->email, 'country' => $r->country,
@@ -128,6 +141,144 @@ class RequestController extends Controller
         return back();
     }
 
+    // ---- manual deals (sold outside the website) and sales tracking ----
+    public function create(): Response
+    {
+        return Inertia::render('admin/requests/create', [
+            'statuses' => RequestStatus::orderBy('sort_order')->get()->map(fn ($s) => ['id' => $s->id, 'key' => $s->key, 'name' => $s->tr('name')])->values(),
+            'types' => ProjectType::orderBy('sort_order')->get()->map(fn ($t) => ['id' => $t->id, 'name' => $t->tr('name')])->values(),
+            'today' => now()->toDateString(),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'customer_name' => ['required', 'string', 'max:190'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'email' => ['nullable', 'email:rfc', 'max:190'],
+            'country' => ['nullable', 'string', 'max:80'],
+            'project_type_id' => ['nullable', 'integer', 'exists:project_types,id'],
+            'title' => ['nullable', 'required_without:project_type_id', 'string', 'max:190'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'request_status_id' => ['required', 'integer', 'exists:request_statuses,id'],
+            'final_price' => ['nullable', 'numeric', 'min:0', 'max:100000000'],
+            'sold_at' => ['nullable', 'date', 'required_with:final_price'],
+            'paid_amount' => ['nullable', 'numeric', 'min:0.01', 'max:100000000'],
+            'paid_at' => ['nullable', 'date', 'required_with:paid_amount'],
+            'method' => ['nullable', 'in:cash,transfer,card,other'],
+        ]);
+
+        $type = isset($data['project_type_id']) ? ProjectType::find($data['project_type_id']) : null;
+        $name = filled($data['title'] ?? null) ? ['en' => $data['title'], 'ar' => $data['title']] : (array) $type?->name;
+        $final = isset($data['final_price']) ? $this->toMinor($data['final_price']) : null;
+        $currency = $this->currency();
+
+        $r = DB::transaction(function () use ($data, $type, $name, $final, $currency, $request) {
+            $r = ProjectRequest::create([
+                'number' => ProjectRequest::generateNumber(), 'source' => 'manual', 'locale' => app()->getLocale(),
+                'project_type_id' => $type?->id, 'project_type_snapshot' => ['key' => $type?->key, 'name' => $name],
+                'request_status_id' => $data['request_status_id'], 'assigned_to' => $request->user()->id,
+                'customer_name' => $data['customer_name'], 'phone' => $data['phone'] ?? null, 'email' => $data['email'] ?? null,
+                'country' => $data['country'] ?? null, 'description' => $data['description'] ?? null,
+                'currency' => $currency['code'], 'subtotal_minor' => $final ?? 0, 'total_minor' => $final ?? 0,
+                'pricing_snapshot' => ['source' => 'manual'],
+                'sold_at' => $final !== null ? $data['sold_at'] : null, 'final_price_minor' => $final,
+                'sold_by' => $final !== null ? $request->user()->id : null,
+            ]);
+            if (isset($data['paid_amount'])) {
+                $r->payments()->create([
+                    'amount_minor' => $this->toMinor($data['paid_amount']), 'paid_at' => $data['paid_at'],
+                    'method' => $data['method'] ?? 'cash', 'created_by' => $request->user()->id,
+                ]);
+            }
+            $r->notes()->create(['user_id' => $request->user()->id, 'type' => 'note', 'body' => __('admin_sales.s.note_manual')]);
+            ActivityLog::record('request.manual_created', $r, ['number' => $r->number, 'final_price_minor' => $final]);
+
+            return $r;
+        });
+
+        return redirect()->route('admin.requests.show', $r);
+    }
+
+    /** Record, update or clear the closed deal: sale date and final agreed price. */
+    public function sale(Request $request, ProjectRequest $projectRequest): RedirectResponse
+    {
+        $data = $request->validate([
+            'sold_at' => ['nullable', 'date', 'required_with:final_price'],
+            'final_price' => ['nullable', 'numeric', 'min:0', 'max:100000000', 'required_with:sold_at'],
+        ]);
+        $final = isset($data['final_price']) ? $this->toMinor($data['final_price']) : null;
+        $before = ['sold_at' => $projectRequest->sold_at?->toDateString(), 'final_price_minor' => $projectRequest->final_price_minor];
+
+        $projectRequest->update([
+            'sold_at' => $final !== null ? $data['sold_at'] : null,
+            'final_price_minor' => $final,
+            'sold_by' => $final !== null ? ($projectRequest->sold_by ?? $request->user()->id) : null,
+        ]);
+        $projectRequest->notes()->create([
+            'user_id' => $request->user()->id, 'type' => 'note',
+            'body' => $final !== null
+                ? __('admin_sales.s.note_sold', ['date' => $data['sold_at'], 'amount' => $this->fmt($final)])
+                : __('admin_sales.s.note_unsold'),
+        ]);
+        ActivityLog::record('request.sale_recorded', $projectRequest, ['before' => $before, 'final_price_minor' => $final]);
+
+        return back();
+    }
+
+    public function paymentStore(Request $request, ProjectRequest $projectRequest): RedirectResponse
+    {
+        $data = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:100000000'],
+            'paid_at' => ['required', 'date'],
+            'method' => ['required', 'in:cash,transfer,card,other'],
+            'note' => ['nullable', 'string', 'max:500'],
+        ]);
+        $amount = $this->toMinor($data['amount']);
+        $projectRequest->payments()->create([
+            'amount_minor' => $amount, 'paid_at' => $data['paid_at'], 'method' => $data['method'],
+            'note' => $data['note'] ?? null, 'created_by' => $request->user()->id,
+        ]);
+        $projectRequest->notes()->create([
+            'user_id' => $request->user()->id, 'type' => 'note',
+            'body' => __('admin_sales.s.note_paid', ['amount' => $this->fmt($amount), 'date' => $data['paid_at']]),
+        ]);
+        ActivityLog::record('request.payment_added', $projectRequest, ['amount_minor' => $amount]);
+
+        return back();
+    }
+
+    public function paymentDestroy(ProjectRequest $projectRequest, RequestPayment $payment): RedirectResponse
+    {
+        abort_unless($payment->project_request_id === $projectRequest->id, 404);
+        ActivityLog::record('request.payment_deleted', $projectRequest, ['amount_minor' => $payment->amount_minor, 'paid_at' => $payment->paid_at?->toDateString()]);
+        $payment->delete();
+
+        return back();
+    }
+
+    /** @return array{code: string, decimals: int} */
+    private function currency(): array
+    {
+        $c = (array) (SiteSetting::get('currency') ?? []);
+
+        return ['code' => (string) ($c['code'] ?? 'USD'), 'decimals' => (int) ($c['decimals'] ?? 2)];
+    }
+
+    /** Major units typed by staff (e.g. 1500.50) to integer minor units. */
+    private function toMinor(mixed $value): int
+    {
+        return (int) round(((float) $value) * (10 ** $this->currency()['decimals']));
+    }
+
+    private function fmt(int $minor): string
+    {
+        $c = $this->currency();
+
+        return number_format($minor / (10 ** $c['decimals']), $c['decimals']).' '.$c['code'];
+    }
+
     public function download(ProjectRequest $projectRequest, ProjectRequestAttachment $attachment): StreamedResponse
     {
         abort_unless($attachment->project_request_id === $projectRequest->id, 404);
@@ -140,12 +291,12 @@ class RequestController extends Controller
     public function export(Request $request): StreamedResponse
     {
         ActivityLog::record('request.exported', null, $request->only(['q', 'status', 'type', 'from', 'to']));
-        $query = $this->filtered($request)->with('status')->latest();
+        $query = $this->filtered($request)->with('status')->withSum('payments as received_minor', 'amount_minor')->latest();
 
         return response()->streamDownload(function () use ($query) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF"); // UTF-8 BOM so Excel reads Arabic correctly
-            fputcsv($out, ['Number', 'Date', 'Customer', 'Phone', 'Email', 'Project type', 'Status', 'Pages', 'Subtotal', 'Discount', 'Total', 'Currency']);
+            fputcsv($out, ['Number', 'Date', 'Customer', 'Phone', 'Email', 'Project type', 'Status', 'Pages', 'Subtotal', 'Discount', 'Total', 'Currency', 'Source', 'Sold on', 'Final price', 'Received', 'Remaining']);
             $query->chunk(200, function ($rows) use ($out) {
                 foreach ($rows as $r) {
                     fputcsv($out, array_map([$this, 'safeCell'], [
@@ -153,6 +304,10 @@ class RequestController extends Controller
                         $r->project_type_snapshot['name']['en'] ?? '', $r->status->key, $r->pages,
                         number_format($r->subtotal_minor / 100, 2, '.', ''), number_format($r->discount_minor / 100, 2, '.', ''),
                         number_format($r->total_minor / 100, 2, '.', ''), $r->currency,
+                        $r->source ?? 'website', $r->sold_at?->toDateString(),
+                        $r->final_price_minor === null ? '' : number_format($r->final_price_minor / 100, 2, '.', ''),
+                        number_format(((int) $r->received_minor) / 100, 2, '.', ''),
+                        $r->final_price_minor === null ? '' : number_format(($r->final_price_minor - (int) $r->received_minor) / 100, 2, '.', ''),
                     ]));
                 }
             });
@@ -180,6 +335,18 @@ class RequestController extends Controller
         if ($request->filled('type')) {
             $q->where('project_type_id', (int) $request->query('type'));
         }
+        if ($request->filled('source')) {
+            $q->where('source', $request->query('source') === 'manual' ? 'manual' : 'website');
+        }
+        // deal: sold | unsold | due (sold but not fully collected)
+        match ($request->query('deal')) {
+            'sold' => $q->whereNotNull('sold_at'),
+            'unsold' => $q->whereNull('sold_at'),
+            'due' => $q->whereNotNull('sold_at')->whereRaw(
+                'final_price_minor > (SELECT COALESCE(SUM(amount_minor), 0) FROM request_payments WHERE request_payments.project_request_id = project_requests.id)'
+            ),
+            default => null,
+        };
         if ($request->filled('from')) {
             $q->whereDate('created_at', '>=', $request->query('from'));
         }

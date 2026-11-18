@@ -11,6 +11,8 @@ interface Req {
     preferred_contact: string | null; whatsapp_opt_in: boolean; description: string | null; goal: string | null; audience: string | null;
     expected_date: string | null; budget_minor: number | null; currency: string; subtotal_minor: number; discount_minor: number; total_minor: number;
     has_unpriced_items: boolean; items: Item[];
+    source: 'website' | 'manual'; sold_at: string | null; final_price_minor: number | null; seller: string | null;
+    received_minor: number; quote_total_minor: number | null; payments: Payment[];
     attachments: { id: number; name: string; size: number; mime: string }[];
     notes: { id: number; type: string; channel: string | null; body: string; author: string | null; at: string | null }[];
 }
@@ -20,8 +22,100 @@ interface Props {
     staff: { id: number; name: string }[];
 }
 
+interface Payment { id: number; amount_minor: number; paid_at: string | null; method: string; note: string | null; author: string | null }
+
 function Row({ label, children }: { label: string; children: ReactNode }) {
     return children ? <div className="ta-kv"><dt>{label}</dt><dd>{children}</dd></div> : null;
+}
+
+/** The closed deal: sale date, final price, payments received and what is still expected. */
+function SaleCard({ r, manage }: { r: Req; manage: boolean }) {
+    const { t, url, locale, currency } = useAdmin();
+    const money = (n: number) => formatMoney(n, currency, locale);
+    const factor = Math.pow(10, currency.decimals);
+    const today = new Date().toISOString().slice(0, 10);
+    const suggested = r.final_price_minor ?? r.quote_total_minor ?? (r.total_minor || null);
+    const [sale, setSale] = useState({ sold_at: r.sold_at ?? today, final_price: suggested !== null ? String(suggested / factor) : '' });
+    const [pay, setPay] = useState({ amount: '', paid_at: today, method: 'cash', note: '' });
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const remaining = r.final_price_minor !== null ? r.final_price_minor - r.received_minor : null;
+    const opts = { preserveScroll: true, onError: (e: Record<string, string>) => setErrors(e), onSuccess: () => setErrors({}) };
+
+    return (
+        <section className="ta-card">
+            <h2>{t('s.sale')}</h2>
+            {r.sold_at ? (
+                <dl className="ta-totals">
+                    <div><dt>{t('s.sold_at')}</dt><dd dir="ltr">{r.sold_at}</dd></div>
+                    <div><dt>{t('s.final_price')}</dt><dd><bdi>{money(r.final_price_minor ?? 0)}</bdi></dd></div>
+                    <div><dt>{t('s.received')}</dt><dd><bdi>{money(r.received_minor)}</bdi></dd></div>
+                    <div className="big"><dt>{t('s.remaining')}</dt><dd><bdi>{money(Math.max(0, remaining ?? 0))}</bdi></dd></div>
+                    {r.seller && <div><dt>{t('s.seller')}</dt><dd>{r.seller}</dd></div>}
+                </dl>
+            ) : <p className="ta-muted">{t('s.not_sold')}</p>}
+            {remaining !== null && remaining === 0 && <p className="ta-muted">✓ {t('s.paid_full')}</p>}
+            {remaining !== null && remaining < 0 && <p className="ta-warn">{t('s.overpaid')}</p>}
+
+            {manage && (
+                <form style={{ display: 'grid', gap: 8 }} onSubmit={(e) => { e.preventDefault(); router.post(url(`/requests/${r.id}/sale`), sale, opts); }}>
+                    <div className="ta-row">
+                        <label className="ta-date"><span>{t('s.sold_at')}</span><input className="ta-in" type="date" value={sale.sold_at} onChange={(e) => setSale({ ...sale, sold_at: e.target.value })} /></label>
+                        <label className="ta-date"><span>{t('s.final_price')} ({currency.code})</span><input className="ta-in" type="number" min="0" step="any" dir="ltr" value={sale.final_price} onChange={(e) => setSale({ ...sale, final_price: e.target.value })} /></label>
+                    </div>
+                    {(errors.sold_at || errors.final_price) && <p className="ta-warn">{errors.sold_at ?? errors.final_price}</p>}
+                    <p className="ta-muted">{t('s.estimate')}: <bdi>{money(r.total_minor)}</bdi>{r.quote_total_minor !== null && <> · {t('s.quote')}: <bdi>{money(r.quote_total_minor)}</bdi></>}</p>
+                    <div className="ta-row">
+                        <button className="ta-btn pri" type="submit" disabled={!sale.final_price || !sale.sold_at}>{r.sold_at ? t('s.update_sale') : t('s.mark_sold')}</button>
+                        {r.sold_at && (
+                            <button className="ta-btn" type="button" onClick={() => confirm(t('s.clear_confirm')) && router.post(url(`/requests/${r.id}/sale`), { sold_at: null, final_price: null }, opts)}>
+                                {t('s.clear_sale')}
+                            </button>
+                        )}
+                    </div>
+                </form>
+            )}
+
+            <h3>{t('s.payments')}</h3>
+            {r.payments.length === 0 ? <p className="ta-muted">{t('s.no_payments')}</p> : (
+                <ul className="ta-list plain">
+                    {r.payments.map((p) => (
+                        <li key={p.id}>
+                            <span>
+                                <b><bdi>{money(p.amount_minor)}</bdi></b>
+                                <small><span dir="ltr">{p.paid_at}</span> · {t(`s.m.${p.method}`)}{p.author ? ` · ${p.author}` : ''}{p.note ? ` · ${p.note}` : ''}</small>
+                            </span>
+                            {manage && (
+                                <button className="ta-btn" type="button" onClick={() => confirm(t('s.delete_confirm')) && router.delete(url(`/requests/${r.id}/payments/${p.id}`), { preserveScroll: true })}>
+                                    {t('s.delete')}
+                                </button>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+            {manage && (
+                <form style={{ display: 'grid', gap: 8 }} onSubmit={(e) => {
+                    e.preventDefault();
+                    router.post(url(`/requests/${r.id}/payments`), pay, { ...opts, onSuccess: () => { setErrors({}); setPay({ ...pay, amount: '', note: '' }); } });
+                }}>
+                    <div className="ta-row">
+                        <label className="ta-date"><span>{t('s.amount')} ({currency.code})</span><input className="ta-in" type="number" min="0" step="any" dir="ltr" value={pay.amount}
+                            placeholder={remaining && remaining > 0 ? String(remaining / factor) : ''} onChange={(e) => setPay({ ...pay, amount: e.target.value })} /></label>
+                        <label className="ta-date"><span>{t('s.paid_at')}</span><input className="ta-in" type="date" value={pay.paid_at} onChange={(e) => setPay({ ...pay, paid_at: e.target.value })} /></label>
+                        <label className="ta-date"><span>{t('s.method')}</span>
+                            <select className="ta-in" value={pay.method} onChange={(e) => setPay({ ...pay, method: e.target.value })}>
+                                {['cash', 'transfer', 'card', 'other'].map((m) => <option key={m} value={m}>{t(`s.m.${m}`)}</option>)}
+                            </select>
+                        </label>
+                    </div>
+                    <input className="ta-in" placeholder={t('s.pay_note')} value={pay.note} onChange={(e) => setPay({ ...pay, note: e.target.value })} />
+                    {(errors.amount || errors.paid_at) && <p className="ta-warn">{errors.amount ?? errors.paid_at}</p>}
+                    <div><button className="ta-btn pri" type="submit" disabled={!pay.amount}>{t('s.add_payment')}</button></div>
+                </form>
+            )}
+        </section>
+    );
 }
 
 export default function Show({ request: r, statuses, staff }: Props) {
@@ -42,7 +136,11 @@ export default function Show({ request: r, statuses, staff }: Props) {
                     <section className="ta-card">
                         <div className="ta-card-head">
                             <h2 dir="ltr">{r.number}</h2>
-                            {current && <em className={`ta-badge ta-bg-${current.color}`}>{current.name}</em>}
+                            <span className="ta-end">
+                                {r.source === 'manual' && <em className="ta-badge ta-bg-slate">{t('s.src.manual')}</em>}
+                                {r.sold_at && <em className="ta-badge ta-bg-green">{t('s.f.sold')}</em>}
+                                {current && <em className={`ta-badge ta-bg-${current.color}`}>{current.name}</em>}
+                            </span>
                         </div>
                         <dl className="ta-dl">
                             <Row label={t('a.show.project')}>{names(r.type, locale)}{r.pages ? ` · ${r.pages} ${t('a.show.pages')}` : ''}</Row>
@@ -112,6 +210,8 @@ export default function Show({ request: r, statuses, staff }: Props) {
                 </div>
 
                 <div className="ta-col">
+                    <SaleCard r={r} manage={manage} />
+
                     {manage && (
                         <section className="ta-card">
                             <h2>{t('a.show.status_title')}</h2>

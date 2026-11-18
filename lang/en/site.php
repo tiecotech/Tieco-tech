@@ -20,6 +20,12 @@ return [
     'contact.sent_title' => 'Message received', 'contact.sent_text' => 'Thank you. We saved your message and will get back to you.', 'contact.another' => 'Send another message',
     'contact.method.phone' => 'Phone call', 'contact.method.whatsapp' => 'WhatsApp', 'contact.method.email' => 'Email',
     'contact.none_yet' => 'Contact details will appear here soon. You can use the form.',
+    'contact.err.name' => 'Please write your name.', 'contact.err.need_one' => 'Please add a phone/WhatsApp number or an email so we can reply.',
+    'contact.err.phone' => 'Please enter a valid phone number using digits only, with the country code, e.g. +963 912 345 678.',
+    'contact.err.email' => 'Please enter a valid email address, e.g. name@example.com, or leave it empty.',
+    'contact.err.subject' => 'Please write a short subject.', 'contact.err.message' => 'Please write your message.',
+    'contact.err.message_min' => 'Your message is too short. Please write at least 10 characters.',
+    'contact.err.too_long' => 'This text is too long.', 'contact.err.preferred' => 'Please choose one of the listed options.',
     'legal.updated_note' => 'Legal pages', 'nav.legal' => 'Legal',
     'footer.legal' => 'Legal',
 

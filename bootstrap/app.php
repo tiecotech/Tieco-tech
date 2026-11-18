@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        // Called by the GitHub deploy workflow (token-protected), not by browsers.
+        $middleware->validateCsrfTokens(except: ['_deploy/finish']);
 
         $middleware->web(append: [
             BlockPublicRegistration::class,

@@ -140,7 +140,7 @@ class ProjectRequestSubmitter
     {
         try {
             $staff = User::where('is_active', true)->get()->filter(fn (User $u) => $u->hasPermission('requests.manage'));
-            Notification::send($staff, new NewProjectRequestNotification($request));
+            Mailing::alertStaff($staff, new NewProjectRequestNotification($request));
 
             if ($request->email && Mailing::isConfigured()) {
                 Notification::route('mail', $request->email)->notify(new ProjectRequestReceivedNotification($request, $locale));

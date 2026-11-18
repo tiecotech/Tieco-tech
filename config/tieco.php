@@ -7,6 +7,9 @@ return [
     // Skips the coming-soon gate regardless of the dashboard switch (tests, emergencies).
     'force_live' => (bool) env('SITE_FORCE_LIVE', false),
 
+    // Secret for the post-deploy hook (FTP deploys only). Empty = hook disabled. Min 32 chars.
+    'deploy_token' => env('DEPLOY_TOKEN'),
+
     // Private disk for customer attachments (never served directly).
     'uploads' => [
         'disk' => env('TIECO_UPLOAD_DISK', 'local'),

@@ -20,6 +20,12 @@ return [
     'contact.sent_title' => 'وصلت رسالتك', 'contact.sent_text' => 'شكرًا لك. حفظنا رسالتك وسنعاود التواصل معك.', 'contact.another' => 'إرسال رسالة أخرى',
     'contact.method.phone' => 'اتصال هاتفي', 'contact.method.whatsapp' => 'واتساب', 'contact.method.email' => 'البريد الإلكتروني',
     'contact.none_yet' => 'ستظهر بيانات التواصل هنا قريبًا. يمكنك استخدام النموذج.',
+    'contact.err.name' => 'يرجى كتابة اسمك.', 'contact.err.need_one' => 'يرجى إضافة رقم هاتف/واتساب أو بريد إلكتروني حتى نتمكن من الرد.',
+    'contact.err.phone' => 'يرجى إدخال رقم هاتف صحيح بالأرقام فقط مع رمز الدولة، مثال: ‎+963 912 345 678.',
+    'contact.err.email' => 'يرجى إدخال بريد إلكتروني صحيح مثل name@example.com أو اتركه فارغًا.',
+    'contact.err.subject' => 'يرجى كتابة عنوان قصير للرسالة.', 'contact.err.message' => 'يرجى كتابة رسالتك.',
+    'contact.err.message_min' => 'الرسالة قصيرة جدًا. يرجى كتابة 10 أحرف على الأقل.',
+    'contact.err.too_long' => 'هذا النص طويل جدًا.', 'contact.err.preferred' => 'يرجى اختيار أحد الخيارات المتاحة.',
     'legal.updated_note' => 'الصفحات القانونية', 'nav.legal' => 'قانوني',
     'footer.legal' => 'قانوني',
 

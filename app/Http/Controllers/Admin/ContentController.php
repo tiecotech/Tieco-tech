@@ -8,8 +8,12 @@ use App\Models\Page;
 use App\Models\Service;
 use App\Models\SiteSetting;
 use App\Models\TeamMember;
+use App\Support\Mailing;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Throwable;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -145,9 +149,50 @@ class ContentController extends Controller
     {
         $c = SiteSetting::get('contact', []);
 
-        return Inertia::render('admin/content/settings', ['contact' => [
-            'email' => $c['email'] ?? '', 'phone' => $c['phone'] ?? '', 'whatsapp' => $c['whatsapp'] ?? '', 'address' => $c['address'] ?? '',
-        ]]);
+        $n = (array) SiteSetting::get('notifications', []);
+
+        return Inertia::render('admin/content/settings', [
+            'contact' => [
+                'email' => $c['email'] ?? '', 'phone' => $c['phone'] ?? '', 'whatsapp' => $c['whatsapp'] ?? '', 'address' => $c['address'] ?? '',
+            ],
+            'alerts' => [
+                'email' => $n['email'] ?? '', 'enabled' => (bool) ($n['enabled'] ?? true),
+                'mail_ready' => Mailing::isConfigured(), 'mailer' => (string) config('mail.default'),
+            ],
+        ]);
+    }
+
+    public function alertsSave(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'email' => ['nullable', 'email:rfc', 'max:190'],
+            'enabled' => ['boolean'],
+        ]);
+        SiteSetting::put('notifications', ['email' => $data['email'] ?? null, 'enabled' => (bool) ($data['enabled'] ?? true)]);
+        ActivityLog::record('settings.notifications_updated');
+
+        return back();
+    }
+
+    /** Sends a real test email to the alert inbox so the owner can confirm delivery. */
+    public function alertsTest(): RedirectResponse
+    {
+        $to = Mailing::alertEmail();
+        if (! $to) {
+            return back()->withErrors(['test' => __('admin_sales.s.alert_no_email')]);
+        }
+        if (! Mailing::isConfigured()) {
+            return back()->withErrors(['test' => __('admin_sales.s.alert_no_mailer')]);
+        }
+        try {
+            Mail::raw("Tieco: test alert ✓\nإشعارات الموقع تعمل بشكل صحيح.\n".url('/admin'), fn ($m) => $m->to($to)->subject('Tieco — test alert / إيميل تجريبي'));
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()->withErrors(['test' => __('admin_sales.s.alert_failed').' '.Str::limit($e->getMessage(), 200)]);
+        }
+
+        return back()->with('alert_test_sent', true);
     }
 
     public function settingsSave(Request $request): RedirectResponse

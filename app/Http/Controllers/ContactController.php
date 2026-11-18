@@ -7,10 +7,10 @@ use App\Models\ContactMessage;
 use App\Models\SiteSetting;
 use App\Models\User;
 use App\Notifications\NewContactMessageNotification;
+use App\Support\Mailing;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -37,9 +37,7 @@ class ContactController extends Controller
         // Saved first; a notification problem must never lose the message or fail the visitor.
         try {
             $staff = User::where('is_active', true)->get()->filter(fn (User $u) => $u->hasPermission('messages.manage'));
-            if ($staff->isNotEmpty()) {
-                Notification::send($staff, new NewContactMessageNotification($message));
-            }
+            Mailing::alertStaff($staff, new NewContactMessageNotification($message));
         } catch (Throwable $e) {
             Log::warning('contact: notification failed', ['message_id' => $message->id, 'error' => $e->getMessage()]);
         }

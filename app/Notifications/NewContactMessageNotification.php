@@ -6,6 +6,7 @@ use App\Models\ContactMessage;
 use App\Support\Mailing;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Str;
 
 class NewContactMessageNotification extends Notification
 {
@@ -13,7 +14,7 @@ class NewContactMessageNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return Mailing::isConfigured() ? ['database', 'mail'] : ['database'];
+        return Mailing::staffChannels($notifiable);
     }
 
     public function toArray(object $notifiable): array
@@ -28,7 +29,13 @@ class NewContactMessageNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)->subject('New contact message: '.$this->message->subject)
-            ->line("{$this->message->name} wrote to you through the website.");
+        $m = $this->message;
+
+        return (new MailMessage)->subject('رسالة جديدة / New contact message: '.$m->subject)
+            ->greeting('رسالة جديدة من الموقع — New message')
+            ->line("من / From: {$m->name}")
+            ->line('الهاتف / Phone: '.($m->phone ?: '-').' · الإيميل / Email: '.($m->email ?: '-'))
+            ->line(Str::limit((string) $m->message, 300))
+            ->action('افتح الرسالة / Open in dashboard', url('/admin/messages/'.$m->id));
     }
 }

@@ -7,14 +7,14 @@ use App\Support\Mailing;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-/** Sent to staff who can manage requests: in-dashboard always, email when a mail provider is configured. */
+/** Sent to staff who can manage requests (in-dashboard always, email when a mail provider is configured) and to the owner's alert inbox. */
 class NewProjectRequestNotification extends Notification
 {
     public function __construct(public ProjectRequest $request) {}
 
     public function via(object $notifiable): array
     {
-        return Mailing::isConfigured() ? ['database', 'mail'] : ['database'];
+        return Mailing::staffChannels($notifiable);
     }
 
     public function toArray(object $notifiable): array
@@ -32,9 +32,17 @@ class NewProjectRequestNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        $r = $this->request;
+        $type = $r->project_type_snapshot['name']['ar'] ?? $r->project_type_snapshot['name']['en'] ?? '-';
+
         return (new MailMessage)
-            ->subject("New project request {$this->request->number}")
-            ->line("{$this->request->customer_name} sent a new project request.")
-            ->line('Estimated total: '.number_format($this->request->total_minor / 100, 2).' '.$this->request->currency);
+            ->subject("طلب مشروع جديد / New project request {$r->number}")
+            ->greeting('طلب جديد على الموقع — New request')
+            ->line("العميل / Customer: {$r->customer_name}")
+            ->line('الهاتف / Phone: '.($r->phone ?: '-'))
+            ->line('الإيميل / Email: '.($r->email ?: '-'))
+            ->line("نوع المشروع / Project: {$type}")
+            ->line('التقدير / Estimate: '.number_format($r->total_minor / 100, 2).' '.$r->currency)
+            ->action('افتح الطلب في لوحة التحكم / Open in dashboard', url('/admin/requests/'.$r->id));
     }
 }
