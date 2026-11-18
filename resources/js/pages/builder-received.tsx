@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function BuilderReceived({ submitted, currency }: Props) {
-    const { t, locale, url } = useSite();
+    const { t, locale, url, site } = useSite();
 
     return (
         <SiteLayout title={t('b.done.title')}>
@@ -32,6 +32,7 @@ export default function BuilderReceived({ submitted, currency }: Props) {
                     </p>
                     {submitted.has_unpriced_items && <p className="tt-b-warn">{t('b.done.unpriced')}</p>}
                     {submitted.email_sent && <p className="tt-b-hint">{t('b.done.email')}</p>}
+                    {site.support && <p className="tt-b-hint"><Link href={url('/support')}>{t('sup.client_note')}</Link></p>}
                     <div className="tt-b-nav center">
                         <Link className="tt-btn pri" href={url()}>{t('b.done.home')}</Link>
                         <Link className="tt-btn out" href={url('/start')}>{t('b.done.another')}</Link>

@@ -83,6 +83,7 @@ function Footer({ services }: { services: { id: number; name: string }[] }) {
                         {(legal ?? []).map((p) => <Link key={p.slug} href={url(`/legal/${p.slug}`)}>{p.title}</Link>)}
                         {SHOW_WORK && <Link href={url('/projects')}>{t('nav.work')}</Link>}
                         <Link href={url('/start')}>{t('hero.cta')}</Link>
+                        {site.support && <Link href={url('/support')} style={{ color: 'var(--tt-o)' }}>♥ {t('nav.support')}</Link>}
                     </div>
                     <div className="l">
                         <h4>{t('footer.contact')}</h4>

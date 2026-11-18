@@ -20,6 +20,7 @@ export default function AdminLayout({ title, children }: PropsWithChildren<{ tit
         { href: url('/content/pages'), label: t('a.nav.pages'), show: can('content.manage'), match: (u: string) => u.startsWith('/admin/content/pages') },
         { href: url('/content/team'), label: t('a.nav.team'), show: can('content.manage'), match: (u: string) => u.startsWith('/admin/content/team') },
         { href: url('/content/settings'), label: t('a.nav.settings'), show: can('content.manage'), match: (u: string) => u.startsWith('/admin/content/settings') },
+        { href: url('/content/support'), label: t('sp.nav'), show: can('content.manage'), match: (u: string) => u.startsWith('/admin/content/support') },
         { href: url('/users'), label: t('a.nav.users'), show: can('users.manage'), match: (u: string) => u.startsWith('/admin/users') },
         { href: url('/launch'), label: t('a.nav.launch'), show: can('site.launch'), match: (u: string) => u.startsWith('/admin/launch') },
         { href: url('/activity'), label: t('a.nav.activity'), show: can('activity.view'), match: (u: string) => u.startsWith('/admin/activity') },

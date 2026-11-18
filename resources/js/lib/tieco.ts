@@ -9,7 +9,7 @@ export interface SharedProps {
     ui: Record<string, string>;
     alternate: { locale: Locale; url: string; label: string };
     legal?: { slug: string; title: string }[];
-    site: { name: string; contact: { email?: string | null; phone?: string | null; whatsapp?: string | null } };
+    site: { name: string; contact: { email?: string | null; phone?: string | null; whatsapp?: string | null }; support?: boolean };
     [key: string]: unknown;
 }
 

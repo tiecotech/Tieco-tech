@@ -1,0 +1,58 @@
+/* "Be part of our journey" page. */
+.tt-sup{padding:64px 0 96px;overflow:hidden}
+.tt-sup-hero{position:relative;text-align:center;max-width:780px;margin:0 auto 72px}
+.tt-sup-hero::before{content:"";position:absolute;inset:-120px -200px auto;height:420px;z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--tt-p) 26%,transparent),transparent),radial-gradient(closest-side at 70% 60%,color-mix(in srgb,var(--tt-o) 18%,transparent),transparent);filter:blur(10px)}
+.tt-sup-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;border:1px solid var(--tt-line);background:var(--tt-bg2);font-size:13.5px;color:var(--tt-mut);margin-bottom:22px}
+.tt-sup-eyebrow i{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--tt-p),var(--tt-o));box-shadow:0 0 0 4px color-mix(in srgb,var(--tt-o) 18%,transparent)}
+.tt-sup-hero h1{font-size:clamp(34px,5vw,60px);letter-spacing:-.03em;line-height:1.08;margin:0 0 18px}
+[dir=rtl] .tt-sup-hero h1{letter-spacing:0;line-height:1.3}
+.tt-sup-hero h1 span{background:linear-gradient(120deg,var(--tt-p),var(--tt-m),var(--tt-o));-webkit-background-clip:text;background-clip:text;color:transparent}
+.tt-sup-hero p{color:var(--tt-mut);font-size:clamp(16px,1.6vw,19px);line-height:1.75;margin:0 auto 28px;max-width:62ch}
+
+.tt-sup-sec{margin-top:80px}
+.tt-sup-sec>h2{font-size:clamp(24px,2.6vw,32px);margin:0 0 8px;letter-spacing:-.01em;text-align:center}
+.tt-sup-sec>p{color:var(--tt-mut);margin:0 auto 32px;text-align:center;max-width:56ch}
+
+.tt-sup-why{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px}
+.tt-sup-why>div{position:relative;padding:26px;border-radius:20px;border:1px solid var(--tt-line);background:var(--tt-bg2);transition:transform .35s var(--tt-ease),border-color .35s}
+.tt-sup-why>div:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--tt-p) 55%,transparent)}
+.tt-sup-why b{display:block;font-size:18px;margin:14px 0 6px}.tt-sup-why p{margin:0;color:var(--tt-mut);font-size:14.5px;line-height:1.7}
+.tt-sup-ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,color-mix(in srgb,var(--tt-p) 20%,transparent),color-mix(in srgb,var(--tt-o) 20%,transparent))}
+.tt-sup-ic svg{width:22px;height:22px;fill:none;stroke:var(--tt-o);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.tt-sup-ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;max-width:920px;margin:0 auto}
+/* Bank: a card that looks like a premium debit card. */
+.tt-sup-card{position:relative;padding:28px;border-radius:24px;color:#fff;overflow:hidden;min-height:260px;display:flex;flex-direction:column;gap:16px;
+  background:linear-gradient(135deg,#1b1450 0%,#3a1f8f 45%,#6a3bff 100%);box-shadow:0 30px 60px -30px rgba(106,59,255,.6)}
+.tt-sup-card::after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;inset-inline-end:-80px;top:-90px;background:radial-gradient(circle,rgba(255,122,69,.55),transparent 70%)}
+.tt-sup-card.sham{background:linear-gradient(135deg,#0b2f2a 0%,#0f5c4f 50%,#12a37f 100%);box-shadow:0 30px 60px -30px rgba(18,163,127,.55)}
+.tt-sup-card.sham::after{background:radial-gradient(circle,rgba(0,182,255,.45),transparent 70%)}
+.tt-sup-card>*{position:relative;z-index:1}
+.tt-sup-card-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.tt-sup-card-head small{opacity:.75;font-size:13px}.tt-sup-card-head b{font-size:18px}
+.tt-sup-chip{width:42px;height:32px;border-radius:7px;background:linear-gradient(135deg,#f7d98b,#c99a3c);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.tt-sup-num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(18px,2.3vw,23px);letter-spacing:.08em;word-break:break-all}
+.tt-sup-row{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:auto;flex-wrap:wrap}
+.tt-sup-row small{display:block;opacity:.7;font-size:12px;margin-bottom:2px}
+.tt-sup-copy{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer;backdrop-filter:blur(6px);transition:background .2s}
+.tt-sup-copy:hover{background:rgba(255,255,255,.25)}
+.tt-sup-qr{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.tt-sup-qr img{width:150px;height:150px;object-fit:contain;background:#fff;border-radius:16px;padding:8px;box-shadow:0 12px 30px -12px rgba(0,0,0,.5)}
+.tt-sup-qr p{margin:0;opacity:.85;font-size:14px;max-width:22ch;line-height:1.6}
+
+.tt-sup-note{max-width:920px;margin:22px auto 0;padding:14px 18px;border-radius:14px;border:1px dashed var(--tt-line);color:var(--tt-mut);font-size:14px;text-align:center}
+
+.tt-sup-thanks{max-width:920px;margin:28px auto 0;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:24px 28px;border-radius:20px;border:1px solid var(--tt-line);background:var(--tt-bg2)}
+.tt-sup-thanks b{display:block;font-size:19px;margin-bottom:4px}.tt-sup-thanks p{margin:0;color:var(--tt-mut);font-size:14.5px;max-width:52ch}
+
+.tt-sup-free{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.tt-sup-free>div{padding:24px;border-radius:20px;border:1px solid var(--tt-line);display:flex;flex-direction:column;gap:8px}
+.tt-sup-free b{font-size:17px}.tt-sup-free p{margin:0;color:var(--tt-mut);font-size:14.5px;line-height:1.7;flex:1}
+.tt-sup-free .tt-btn{width:fit-content;margin-top:8px}
+button.tt-btn{font-family:inherit;cursor:pointer}
+
+.tt-sup-closing{text-align:center;margin-top:80px;font-size:clamp(20px,2.4vw,28px);font-weight:600}
+.tt-sup-closing span{display:block;width:60px;height:3px;margin:0 auto 18px;border-radius:3px;background:linear-gradient(90deg,var(--tt-p),var(--tt-o))}
+
+@media (max-width:860px){.tt-sup-why,.tt-sup-free{grid-template-columns:1fr}.tt-sup-card{min-height:0}}

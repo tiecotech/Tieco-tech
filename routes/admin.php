@@ -72,7 +72,11 @@ Route::middleware(['auth', 'verified', AdminArea::class])->prefix('admin')->name
 
         Route::get('settings', [ContentController::class, 'settings'])->name('settings');
         Route::put('settings', [ContentController::class, 'settingsSave'])->name('settings.update');
-        Route::put('settings/alerts', [ContentController::class, 'alertsSave'])->name('settings.alerts');
+        Route::get('support', [ContentController::class, 'support'])->name('support');
+        Route::put('support', [ContentController::class, 'supportSave'])->name('support.update');
+        Route::post('support/qr', [ContentController::class, 'supportQr'])->name('support.qr');
+        Route::delete('support/qr', [ContentController::class, 'supportQrDelete'])->name('support.qr.delete');
+        Route::put('settings/alerts',[ContentController::class, 'alertsSave'])->name('settings.alerts');
         Route::post('settings/alerts/test', [ContentController::class, 'alertsTest'])->name('settings.alerts.test');
     });
 

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 class DeployHookTest extends TestCase
@@ -21,6 +22,10 @@ class DeployHookTest extends TestCase
         config(['tieco.deploy_token' => $token]);
 
         $this->post('/_deploy/finish', [], ['X-Deploy-Token' => 'wrong'])->assertNotFound();
+
+        // Don't really run optimize here: it would write the test config into bootstrap/cache.
+        Artisan::shouldReceive('call')->times(4)->andReturn(0);
+        Artisan::shouldReceive('output')->andReturn('');
         $this->post('/_deploy/finish', [], ['X-Deploy-Token' => $token])->assertOk()->assertJson(['ok' => true]);
     }
 }

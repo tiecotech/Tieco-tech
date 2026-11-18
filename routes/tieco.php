@@ -9,6 +9,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RootRedirectController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\ServicesController;
+use App\Http\Controllers\SupportController;
 use App\Http\Middleware\ComingSoon;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,7 @@ Route::prefix('{locale}')->where(['locale' => 'en|ar'])->middleware([ComingSoon:
     Route::get('/about', [PageController::class, 'about'])->name('site.about');
     Route::get('/legal/{slug}', [PageController::class, 'legal'])->name('site.legal');
     Route::get('/contact', [ContactController::class, 'show'])->name('site.contact');
+    Route::get('/support', [SupportController::class, 'show'])->name('site.support');
     Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('site.contact.store');
 
     // Project Builder

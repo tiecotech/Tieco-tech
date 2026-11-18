@@ -20,12 +20,13 @@ class Locale
         $company = SiteSetting::get('company', []);
         $builder = trans('builder');
         $site = trans('site');
+        $support = trans('support');
 
         return [
             'locale' => $locale,
             'dir' => $locale === 'ar' ? 'rtl' : 'ltr',
             'canonical' => $request->url(),
-            'ui' => array_merge((array) trans('ui'), is_array($builder) ? $builder : [], is_array($site) ? $site : []),
+            'ui' => array_merge((array) trans('ui'), is_array($builder) ? $builder : [], is_array($site) ? $site : [], is_array($support) ? $support : []),
             'alternate' => ['locale' => $other, 'url' => url($path).($qs ? '?'.$qs : ''), 'label' => $other === 'ar' ? 'العربية' : 'English'],
             // Legal pages appear in the footer only once published.
             'legal' => Page::whereIn('slug', ['privacy', 'terms', 'requests-policy'])->where('is_published', true)->get()
@@ -33,6 +34,7 @@ class Locale
             'site' => [
                 'name' => $company['name'][$locale] ?? 'Tieco Tech',
                 'contact' => SiteSetting::get('contact', []),
+                'support' => SupportInfo::isLive(),
             ],
         ];
     }

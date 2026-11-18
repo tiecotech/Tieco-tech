@@ -1,0 +1,32 @@
+<?php
+
+// "Be part of our journey" page: a confident startup inviting partners, not asking for charity.
+return [
+    'nav.support' => 'Support our journey',
+    'sup.meta' => 'Tieco Tech is a Syrian startup building world-class digital products. Be part of our journey.',
+    'sup.eyebrow' => 'A Syrian startup',
+    'sup.title' => 'Be part of our journey',
+    'sup.lead' => 'We started Tieco Tech with a simple belief: world-class digital products can be built from Syria. Every step we take today shapes tomorrow, and having you with us makes the road shorter.',
+    'sup.cta' => 'Ways to support',
+    'sup.why_title' => 'Where your support goes',
+    'sup.why.1.t' => 'Stronger tools', 'sup.why.1.d' => 'Servers, licences and devices that let us ship faster and better.',
+    'sup.why.2.t' => 'Young Syrian talent', 'sup.why.2.d' => 'Training new developers and designers and giving them their first real job.',
+    'sup.why.3.t' => 'Projects for the community', 'sup.why.3.d' => 'Websites at symbolic prices for initiatives and small businesses that deserve to be seen.',
+    'sup.ways_title' => 'Direct support',
+    'sup.ways_lead' => 'Any amount, however small, makes a real difference to a company our size.',
+    'sup.bank' => 'Bank transfer', 'sup.holder' => 'Account holder', 'sup.account' => 'Account number', 'sup.branch' => 'Branch',
+    'sup.sham' => 'Sham Cash', 'sup.sham_scan' => 'Scan the code in the Sham Cash app', 'sup.sham_account' => 'Account',
+    'sup.copy' => 'Copy', 'sup.copied' => 'Copied ✓',
+    'sup.thanks_title' => 'Sent your support?',
+    'sup.thanks_text' => 'Let us know so we can thank you personally. We love knowing who walks this road with us.',
+    'sup.thanks_btn' => 'Message us on WhatsApp',
+    'sup.thanks_msg' => 'Hi Tieco Tech, I just sent you a little support. Good luck!',
+    'sup.free_title' => 'Support isn’t only money',
+    'sup.free.1.t' => 'Recommend us', 'sup.free.1.d' => 'Know someone who needs a website or an app? Your word beats any ad.',
+    'sup.free.2.t' => 'Share this page', 'sup.free.2.d' => 'One share might bring us our next client.',
+    'sup.free.3.t' => 'Build with us', 'sup.free.3.d' => 'The best support for a startup is trusting it with your work.',
+    'sup.share' => 'Share', 'sup.share_text' => 'Tieco Tech: a Syrian startup building world-class digital products',
+    'sup.start' => 'Start your project',
+    'sup.client_note' => 'Already a client? You can use the same accounts to pay for your project. Add your request number to the transfer note.',
+    'sup.closing' => 'Thank you for believing in what we build.',
+];

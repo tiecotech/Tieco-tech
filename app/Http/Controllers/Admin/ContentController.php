@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Models\SiteSetting;
 use App\Models\TeamMember;
 use App\Support\Mailing;
+use App\Support\SupportInfo;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -160,6 +161,67 @@ class ContentController extends Controller
                 'mail_ready' => Mailing::isConfigured(), 'mailer' => (string) config('mail.default'),
             ],
         ]);
+    }
+
+    // ---- "support our journey" (bank account / Sham Cash) ----
+    public function support(): Response
+    {
+        $s = SupportInfo::raw();
+        $s['shamcash']['qr_url'] = SupportInfo::qrUrl($s['shamcash']['qr']);
+
+        return Inertia::render('admin/content/support', ['support' => $s]);
+    }
+
+    public function supportSave(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'enabled' => ['boolean'],
+            'bank.enabled' => ['boolean'],
+            'bank.bank_name' => ['nullable', 'string', 'max:120'],
+            'bank.holder' => ['nullable', 'string', 'max:120'],
+            'bank.account' => ['nullable', 'string', 'max:60', 'required_if_accepted:bank.enabled'],
+            'bank.branch' => ['nullable', 'string', 'max:120'],
+            'shamcash.enabled' => ['boolean'],
+            'shamcash.holder' => ['nullable', 'string', 'max:120'],
+            'shamcash.account' => ['nullable', 'string', 'max:80'],
+        ]);
+        $current = SupportInfo::raw();
+        SiteSetting::put('support', [
+            'enabled' => (bool) ($data['enabled'] ?? false),
+            'bank' => array_map(fn ($v) => is_string($v) ? trim($v) : $v, (array) ($data['bank'] ?? [])) + $current['bank'],
+            // The QR image is managed by its own upload endpoint; keep it.
+            'shamcash' => array_map(fn ($v) => is_string($v) ? trim($v) : $v, (array) ($data['shamcash'] ?? [])) + ['qr' => $current['shamcash']['qr']],
+        ]);
+        ActivityLog::record('settings.support_updated');
+
+        return back();
+    }
+
+    public function supportQr(Request $request): RedirectResponse
+    {
+        $request->validate(['qr' => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048']]);
+        $s = (array) SiteSetting::get('support', []);
+        $old = $s['shamcash']['qr'] ?? null;
+        $s['shamcash'] = array_merge((array) ($s['shamcash'] ?? []), ['qr' => $request->file('qr')->store('support', 'public')]);
+        SiteSetting::put('support', $s);
+        if ($old) {
+            Storage::disk('public')->delete($old);
+        }
+        ActivityLog::record('settings.support_qr_uploaded');
+
+        return back();
+    }
+
+    public function supportQrDelete(): RedirectResponse
+    {
+        $s = (array) SiteSetting::get('support', []);
+        if ($old = $s['shamcash']['qr'] ?? null) {
+            Storage::disk('public')->delete($old);
+        }
+        $s['shamcash'] = array_merge((array) ($s['shamcash'] ?? []), ['qr' => null]);
+        SiteSetting::put('support', $s);
+
+        return back();
     }
 
     public function alertsSave(Request $request): RedirectResponse

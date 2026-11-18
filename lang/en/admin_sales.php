@@ -40,6 +40,16 @@ return [
     's.alert_no_mailer' => 'Email sending is not configured on the server (set SMTP in .env).',
     's.alert_failed' => 'Sending failed:',
 
+    // support our journey (bank / Sham Cash)
+    'sp.nav' => 'Support & payment', 'sp.title' => 'Support our journey',
+    'sp.lead' => 'Your bank and Sham Cash details for the public “Support our journey” page. They are stored in the database only, never in the code.',
+    'sp.enabled' => 'Show the support page on the website', 'sp.view' => 'View page ↗',
+    'sp.bank' => 'Bank account', 'sp.bank_on' => 'Show bank account', 'sp.bank_name' => 'Bank name', 'sp.bank_name_hint' => 'Al Baraka Bank Syria',
+    'sp.holder' => 'Account holder name', 'sp.account' => 'Account number', 'sp.branch' => 'Branch (optional)',
+    'sp.sham' => 'Sham Cash', 'sp.sham_on' => 'Show Sham Cash', 'sp.sham_account' => 'Sham Cash account / code',
+    'sp.qr' => 'QR code', 'sp.qr_upload' => 'Upload QR image', 'sp.qr_replace' => 'Replace image', 'sp.qr_remove' => 'Remove', 'sp.qr_hint' => 'PNG or JPG, up to 2 MB. A screenshot of the QR from the Sham Cash app works.',
+    'sp.hidden' => 'The page is hidden until it is switched on and at least one method has details.',
+
     // timeline notes written by the server
     's.note_manual' => 'Deal added manually (sold outside the website).',
     's.note_sold' => 'Sale recorded: :date — final price :amount',
